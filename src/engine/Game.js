@@ -484,28 +484,14 @@ export class Game {
   renderMenuBackground() {
     const W = this.canvas.width;
     const H = this.canvas.height;
-    const time = performance.now() * 0.001;
 
-    // Glowing Animated Background
+    // Sleek Dark Menu Background Gradient
     const grad = this.ctx.createLinearGradient(0, 0, W, H);
     grad.addColorStop(0, '#0d0f17');
     grad.addColorStop(0.5, '#12172b');
     grad.addColorStop(1, '#090b12');
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, W, H);
-
-    // Floating Reality Orbs
-    for (let i = 0; i < 15; i++) {
-      const radius = 30 + Math.sin(time + i) * 10;
-      const ox = (Math.sin(time * 0.5 + i * 2) * 0.4 + 0.5) * W;
-      const oy = (Math.cos(time * 0.4 + i * 1.5) * 0.4 + 0.5) * H;
-      const color = i % 2 === 0 ? 'rgba(54, 209, 220, 0.15)' : 'rgba(255, 81, 47, 0.15)';
-
-      this.ctx.fillStyle = color;
-      this.ctx.beginPath();
-      this.ctx.arc(ox, oy, radius, 0, Math.PI * 2);
-      this.ctx.fill();
-    }
   }
 
   // Network Event Handlers
