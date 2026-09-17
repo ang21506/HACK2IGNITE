@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPLIT REALITY - Co-op Puzzle Platformer</title>
+  <meta name="description" content="A 2D cooperative puzzle platformer where two players exist in different realities. Work together, communicate, and solve handcrafted puzzles.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+  <div id="appContainer">
+    <!-- Game Render Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HTML UI Overlay -->
+    <div id="uiOverlay">
+
+      <!-- MAIN MENU -->
+      <div id="mainMenu" class="ui-panel active">
+        <div class="logo-container">
+          <div class="split-title">
+            <span class="reality-a-text">SPLIT</span>
+            <span class="reality-b-text">REALITY</span>
+          </div>
+          <p class="tagline">Two Realities. One Escape. Communicate & Survive.</p>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btnHost" class="btn btn-primary btn-glow">
+            HOST GAME
+          </button>
+          <button id="btnJoin" class="btn btn-secondary">
+            JOIN GAME
+          </button>
+          <button id="btnLocal" class="btn btn-accent">
+            LOCAL 2-PLAYER (1 KEYBOARD)
+          </button>
+          <button id="btnSettings" class="btn btn-dark">
+            SETTINGS
+          </button>
+        </div>
+
+        <div class="controls-preview">
+          <div class="control-box player1-box">
+            <h4>P1 (REALITY A)</h4>
+            <p><strong>A / D</strong> Move &bull; <strong>W</strong> Jump &bull; <strong>E</strong> Interact</p>
+          </div>
+          <div class="control-box player2-box">
+            <h4>P2 (REALITY B)</h4>
+            <p><strong>LEFT / RIGHT</strong> Move &bull; <strong>UP</strong> Jump &bull; <strong>R-SHIFT</strong> Interact</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOST SCREEN -->
+      <div id="hostScreen" class="ui-panel">
+        <h2 class="panel-title">HOST MULTIPLAYER GAME</h2>
+        <div class="info-card">
+          <div class="room-code-display">
+            <span class="label">ROOM CODE:</span>
+            <span id="displayRoomCode" class="code">----</span>
+          </div>
+          <p class="ip-info">Network Host: <strong id="displayIp">Locating...</strong></p>
+          <div class="player-status-box">
+            <div class="status-item ready">
+              <span class="dot"></span> P1 (HOST): CONNECTED
+            </div>
+            <div id="p2Status" class="status-item waiting">
+              <span class="dot"></span> P2: WAITING FOR PLAYER...
+            </div>
+          </div>
+        </div>
+
+        <div class="level-select-container">
+          <label for="selectLevel">Starting Level:</label>
+          <select id="selectLevel" class="custom-select">
+            <option value="0">Level 1 - Introduction</option>
+            <option value="1">Level 2 - Trust</option>
+            <option value="2">Level 3 - Timing</option>
+            <option value="3">Level 4 - Moving Objects</option>
+            <option value="4">Level 5 - Final Escape</option>
+          </select>
+        </div>
+
+        <div class="panel-actions">
+          <button id="btnStartGame" class="btn btn-primary" disabled>START GAME</button>
+          <button id="btnHostBack" class="btn btn-dark">BACK TO MENU</button>
+        </div>
+      </div>
+
+      <!-- JOIN SCREEN -->
+      <div id="joinScreen" class="ui-panel">
+        <h2 class="panel-title">JOIN MULTIPLAYER GAME</h2>
+        <div class="join-form">
+          <div class="form-group">
+            <label for="inputRoomCode">ENTER 4-LETTER ROOM CODE:</label>
+            <input type="text" id="inputRoomCode" placeholder="e.g. REAL" maxlength="8" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="form-group">
+            <label for="inputServerUrl">SERVER HOST URL / IP (OPTIONAL):</label>
+            <input type="text" id="inputServerUrl" placeholder="auto-detect or ws://localhost:3000">
+          </div>
+          <p id="joinErrorMsg" class="error-msg"></p>
+        </div>
+
+        <div class="panel-actions">
+          <button id="btnJoinConnect" class="btn btn-secondary">CONNECT & JOIN</button>
+          <button id="btnJoinBack" class="btn btn-dark">BACK TO MENU</button>
+        </div>
+      </div>
+
+      <!-- SETTINGS MODAL -->
+      <div id="settingsScreen" class="ui-panel">
+        <h2 class="panel-title">GAME SETTINGS</h2>
+        <div class="settings-list">
+          <div class="setting-item">
+            <span>Audio Sound Effects:</span>
+            <button id="toggleSfx" class="btn btn-small">ENABLED</button>
+          </div>
+          <div class="setting-item">
+            <span>Background Music:</span>
+            <button id="toggleBgm" class="btn btn-small">ENABLED</button>
+          </div>
+          <div class="setting-item">
+            <span>Local Mode Viewport:</span>
+            <button id="toggleViewportMode" class="btn btn-small">SPLIT SCREEN</button>
+          </div>
+          <div class="setting-item">
+            <span>Colorblind Visual Aids:</span>
+            <button id="toggleColorblind" class="btn btn-small">ON (PATTERNS + ICONS)</button>
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <button id="btnSettingsBack" class="btn btn-dark">CLOSE</button>
+        </div>
+      </div>
+
+      <!-- HUD LAYER -->
+      <div id="hudLayer" class="hud-overlay hidden">
+        <div class="hud-header">
+          <div class="player-badge p1-badge">
+            <span class="p1-indicator">P1</span>
+            <span class="p1-reality">REALITY A</span>
+          </div>
+
+          <div class="level-info-badge">
+            <span id="hudLevelTitle" class="hud-title">LEVEL 1 - INTRODUCTION</span>
+            <span id="hudRoomBadge" class="hud-room">LOCAL CO-OP</span>
+          </div>
+
+          <div class="player-badge p2-badge">
+            <span class="p2-reality">REALITY B</span>
+            <span class="p2-indicator">P2</span>
+          </div>
+        </div>
+
+        <!-- Notification Banner -->
+        <div id="hudNotification" class="hud-banner hidden">
+          <span id="notificationText">CHECKPOINT REACHED</span>
+        </div>
+
+        <!-- Floating Chat Input Bar -->
+        <div id="chatOverlay" class="chat-bar hidden">
+          <span class="chat-prompt">CHAT (Press ENTER to send):</span>
+          <input type="text" id="chatInput" placeholder="Type message to partner..." maxlength="60">
+        </div>
+      </div>
+
+      <!-- LEVEL CLEAR / WIN SCREEN -->
+      <div id="victoryScreen" class="ui-panel">
+        <h2 class="panel-title victory-title">LEVEL COMPLETE!</h2>
+        <p class="victory-sub">Perfect Teamwork & Synchronization!</p>
+        <div class="victory-stats">
+          <div class="stat-box">
+            <span class="stat-num" id="statTime">01:45</span>
+            <span class="stat-label">COMPLETION TIME</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num" id="statRespawns">0</span>
+            <span class="stat-label">RESPAWNS</span>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button id="btnNextLevel" class="btn btn-primary">NEXT LEVEL</button>
+          <button id="btnVictoryMenu" class="btn btn-dark">MAIN MENU</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

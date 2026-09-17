@@ -1,0 +1,21 @@
+{
+  "name": "split-reality",
+  "version": "1.0.0",
+  "description": "A 2D Cooperative Puzzle Platformer - Split Reality",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}
