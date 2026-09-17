@@ -25,13 +25,26 @@ function getLocalIp() {
   return '127.0.0.1';
 }
 
-// Create Vite server in middleware mode
-const vite = await createViteServer({
-  server: { middlewareMode: true },
-  appType: 'spa'
-});
+import fs from 'fs';
 
-app.use(vite.middlewares);
+const distPath = path.join(__dirname, 'dist');
+const isProduction = process.env.NODE_ENV === 'production' || fs.existsSync(distPath);
+
+if (isProduction) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.headers.upgrade === 'websocket') return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+  console.log('[Server] Running in PRODUCTION mode (Serving dist/)');
+} else {
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'spa'
+  });
+  app.use(vite.middlewares);
+  console.log('[Server] Running in DEVELOPMENT mode (Vite Middleware)');
+}
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
