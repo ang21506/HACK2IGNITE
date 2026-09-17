@@ -4,6 +4,8 @@ class AudioManager {
     this.ctx = null;
     this.sfxMuted = false;
     this.bgmMuted = false;
+    this.sfxVolume = 1.0;
+    this.bgmVolume = 0.8;
     this.bgmNode = null;
     this.bgmGain = null;
     this.isBgmPlaying = false;

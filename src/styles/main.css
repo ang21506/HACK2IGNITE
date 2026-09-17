@@ -196,6 +196,127 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* --- MODERN CARD-BASED SETTINGS MODAL --- */
+.settings-panel {
+  max-width: 580px;
+  background: rgba(22, 26, 42, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
+}
+
+.settings-card-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setting-card-row {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(235, 75, 80, 0.9), rgba(200, 45, 55, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 6px 20px rgba(200, 45, 55, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.setting-card-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(200, 45, 55, 0.35);
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.setting-icon {
+  width: 22px;
+  height: 22px;
+  stroke: #ffffff;
+  flex-shrink: 0;
+}
+
+.setting-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Range Sliders */
+.setting-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 110px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  outline: none;
+}
+
+.setting-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0f172a;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease;
+}
+
+.setting-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Pill Action Controls */
+.pill-button, .pill-toggle {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+  min-width: 75px;
+  text-align: center;
+}
+
+.pill-button:hover, .pill-toggle:hover {
+  background: #1e293b;
+  transform: scale(1.04);
+}
+
+.pill-toggle.active {
+  background: #0f172a;
+  color: #4ade80;
+}
+
+.pill-toggle.off {
+  background: rgba(15, 23, 42, 0.6);
+  color: #ef4444;
+}
+
+.btn-pill {
+  border-radius: 30px;
+  padding: 12px 36px;
+}
+
 /* Controls Preview Card */
 .controls-preview {
   display: grid;

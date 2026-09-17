@@ -113,29 +113,56 @@
       </div>
 
       <!-- SETTINGS MODAL -->
-      <div id="settingsScreen" class="ui-panel">
-        <h2 class="panel-title">GAME SETTINGS</h2>
-        <div class="settings-list">
-          <div class="setting-item">
-            <span>Audio Sound Effects:</span>
-            <button id="toggleSfx" class="btn btn-small">ENABLED</button>
+      <div id="settingsScreen" class="ui-panel settings-panel">
+        <h2 class="panel-title">SETTINGS</h2>
+        <div class="settings-card-list">
+          
+          <div class="setting-card-row">
+            <div class="setting-label">
+              <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+              <span>MUSIC</span>
+            </div>
+            <div class="setting-control">
+              <input type="range" id="bgmVolume" min="0" max="100" value="80" class="setting-slider">
+              <button id="toggleBgm" class="pill-toggle active">ON</button>
+            </div>
           </div>
-          <div class="setting-item">
-            <span>Background Music:</span>
-            <button id="toggleBgm" class="btn btn-small">ENABLED</button>
+
+          <div class="setting-card-row">
+            <div class="setting-label">
+              <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              <span>SFX</span>
+            </div>
+            <div class="setting-control">
+              <input type="range" id="sfxVolume" min="0" max="100" value="100" class="setting-slider">
+              <button id="toggleSfx" class="pill-toggle active">ON</button>
+            </div>
           </div>
-          <div class="setting-item">
-            <span>Local Mode Viewport:</span>
-            <button id="toggleViewportMode" class="btn btn-small">SPLIT SCREEN</button>
+
+          <div class="setting-card-row">
+            <div class="setting-label">
+              <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="17"></line></svg>
+              <span>VIEWPORT MODE</span>
+            </div>
+            <div class="setting-control">
+              <button id="toggleViewportMode" class="pill-button">SPLIT SCREEN</button>
+            </div>
           </div>
-          <div class="setting-item">
-            <span>Colorblind Visual Aids:</span>
-            <button id="toggleColorblind" class="btn btn-small">ON (PATTERNS + ICONS)</button>
+
+          <div class="setting-card-row">
+            <div class="setting-label">
+              <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>ACCESSIBILITY</span>
+            </div>
+            <div class="setting-control">
+              <button id="toggleColorblind" class="pill-button">PATTERNS & ICONS</button>
+            </div>
           </div>
+
         </div>
 
         <div class="panel-actions">
-          <button id="btnSettingsBack" class="btn btn-dark">CLOSE</button>
+          <button id="btnSettingsBack" class="btn btn-dark btn-pill">CLOSE</button>
         </div>
       </div>
 

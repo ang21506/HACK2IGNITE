@@ -78,17 +78,42 @@ document.addEventListener('DOMContentLoaded', () => {
     showPanel(settingsScreen);
   });
 
-  // Settings Toggles
-  document.getElementById('toggleSfx')?.addEventListener('click', (e) => {
-    audioManager.sfxMuted = !audioManager.sfxMuted;
-    e.target.textContent = audioManager.sfxMuted ? 'DISABLED' : 'ENABLED';
+  // --- SETTINGS CONTROLS ---
+  const sfxSlider = document.getElementById('sfxVolume');
+  const bgmSlider = document.getElementById('bgmVolume');
+  const toggleSfxBtn = document.getElementById('toggleSfx');
+  const toggleBgmBtn = document.getElementById('toggleBgm');
+
+  sfxSlider?.addEventListener('input', (e) => {
+    audioManager.sfxVolume = parseFloat(e.target.value) / 100;
   });
 
-  document.getElementById('toggleBgm')?.addEventListener('click', (e) => {
+  bgmSlider?.addEventListener('input', (e) => {
+    audioManager.bgmVolume = parseFloat(e.target.value) / 100;
+  });
+
+  toggleSfxBtn?.addEventListener('click', (e) => {
+    audioManager.sfxMuted = !audioManager.sfxMuted;
+    if (audioManager.sfxMuted) {
+      e.target.textContent = 'OFF';
+      e.target.className = 'pill-toggle off';
+    } else {
+      e.target.textContent = 'ON';
+      e.target.className = 'pill-toggle active';
+    }
+  });
+
+  toggleBgmBtn?.addEventListener('click', (e) => {
     audioManager.bgmMuted = !audioManager.bgmMuted;
-    e.target.textContent = audioManager.bgmMuted ? 'DISABLED' : 'ENABLED';
-    if (audioManager.bgmMuted) audioManager.stopBgm();
-    else audioManager.startBgm();
+    if (audioManager.bgmMuted) {
+      e.target.textContent = 'OFF';
+      e.target.className = 'pill-toggle off';
+      audioManager.stopBgm();
+    } else {
+      e.target.textContent = 'ON';
+      e.target.className = 'pill-toggle active';
+      audioManager.startBgm();
+    }
   });
 
   document.getElementById('toggleViewportMode')?.addEventListener('click', (e) => {
