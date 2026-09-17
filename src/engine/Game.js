@@ -402,20 +402,34 @@ export class Game {
     this.ctx.save();
     this.ctx.translate(vx, vy);
 
-    // Ambiance Background Gradient
-    const bgGrad = this.ctx.createLinearGradient(0, 0, 0, vh);
-    if (viewerRole === 'p1') {
-      bgGrad.addColorStop(0, '#091e2a');
-      bgGrad.addColorStop(1, '#06131c');
-    } else {
-      bgGrad.addColorStop(0, '#2a0914');
-      bgGrad.addColorStop(1, '#1a050d');
+    // Render User Provided Parchment Texture Background
+    if (!this.bgImg) {
+      this.bgImg = new Image();
+      this.bgImg.src = '/assets/bg_texture.png';
     }
-    this.ctx.fillStyle = bgGrad;
-    this.ctx.fillRect(0, 0, vw, vh);
 
-    // Grid pattern
-    this.ctx.strokeStyle = viewerRole === 'p1' ? 'rgba(54, 209, 220, 0.05)' : 'rgba(255, 81, 47, 0.05)';
+    if (this.bgImg.complete && this.bgImg.naturalWidth !== 0) {
+      if (!this.bgPattern) {
+        this.bgPattern = this.ctx.createPattern(this.bgImg, 'repeat');
+      }
+      this.ctx.fillStyle = this.bgPattern || '#d4b886';
+      this.ctx.fillRect(0, 0, vw, vh);
+
+      // Subtle Reality Ambiance Tint Overlay
+      if (viewerRole === 'p1') {
+        this.ctx.fillStyle = 'rgba(9, 30, 42, 0.45)'; // Teal Reality A tint
+      } else {
+        this.ctx.fillStyle = 'rgba(42, 9, 20, 0.45)'; // Coral Reality B tint
+      }
+      this.ctx.fillRect(0, 0, vw, vh);
+    } else {
+      // Fallback
+      this.ctx.fillStyle = viewerRole === 'p1' ? '#091e2a' : '#2a0914';
+      this.ctx.fillRect(0, 0, vw, vh);
+    }
+
+    // Grid pattern overlay
+    this.ctx.strokeStyle = viewerRole === 'p1' ? 'rgba(54, 209, 220, 0.08)' : 'rgba(255, 81, 47, 0.08)';
     this.ctx.lineWidth = 1;
     const gridStep = 40;
     const startX = -(camera.x % gridStep);

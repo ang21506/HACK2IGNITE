@@ -1,12 +1,51 @@
 import { audioManager } from '../engine/AudioManager.js';
 
+// Cache transparent sprites once loaded
+const spriteCache = {
+  p1: null,
+  p2: null
+};
+
+// Load Player 1 Image (Brown hair guy with maroon shirt)
+const p1Img = new Image();
+p1Img.src = '/assets/player1.png';
+p1Img.onload = () => {
+  spriteCache.p1 = processTransparentSprite(p1Img);
+};
+
+// Load Player 2 Image (Bald guy with white shirt)
+const p2Img = new Image();
+p2Img.src = '/assets/player2.png';
+p2Img.onload = () => {
+  spriteCache.p2 = processTransparentSprite(p2Img);
+};
+
+function processTransparentSprite(img) {
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  const imgData = ctx.getImageData(0, 0, c.width, c.height);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    // Remove white or near-white background pixels
+    if (d[i] > 235 && d[i + 1] > 235 && d[i + 2] > 235) {
+      d[i + 3] = 0;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return c;
+}
+
 export class Player {
   constructor(role, x, y) {
     this.role = role; // 'p1' (Reality A) or 'p2' (Reality B)
     this.x = x;
     this.y = y;
-    this.w = 34;
-    this.h = 44;
+    this.w = 36;
+    this.h = 46;
 
     this.vx = 0;
     this.vy = 0;
@@ -21,7 +60,7 @@ export class Player {
     this.chatMessage = '';
     this.chatTimer = 0;
 
-    // Dust particles when running/landing
+    // Dust particles
     this.particles = [];
   }
 
@@ -78,7 +117,7 @@ export class Player {
 
   setChatMessage(msg) {
     this.chatMessage = msg;
-    this.chatTimer = 4.0; // Display for 4 seconds
+    this.chatTimer = 4.0;
   }
 
   addDust(x, y, vx, vy, count = 1) {
@@ -111,81 +150,18 @@ export class Player {
     // Apply squish/stretch transform centered at character bottom
     ctx.save();
     ctx.translate(drawX + this.w / 2, drawY + this.h);
-    ctx.scale(this.squishX, this.squishY);
+    ctx.scale(this.facing * this.squishX, this.squishY);
 
-    if (this.role === 'p1') {
-      // PLAYER 1 (Reality A): Cute rounded Teal Explorer with Backpack
-      const colorTeal = '#36d1dc';
-      const colorDarkTeal = '#0f766e';
-      const colorBackpack = '#f59e0b';
+    const sprite = this.role === 'p1' ? spriteCache.p1 : spriteCache.p2;
 
-      // Backpack
-      ctx.fillStyle = colorBackpack;
-      ctx.beginPath();
-      ctx.roundRect(this.facing === 1 ? -this.w / 2 - 4 : this.w / 2 - 4, -this.h * 0.7, 8, 20, 4);
-      ctx.fill();
-
-      // Main Body
-      ctx.fillStyle = colorTeal;
-      ctx.beginPath();
-      ctx.roundRect(-this.w / 2, -this.h, this.w, this.h, 14);
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#fff';
-      ctx.stroke();
-
-      // Eyes/Face
-      ctx.fillStyle = '#0f172a';
-      const eyeOffsetX = this.facing * 5;
-      ctx.beginPath();
-      ctx.arc(eyeOffsetX - 4, -this.h * 0.65, 3.5, 0, Math.PI * 2);
-      ctx.arc(eyeOffsetX + 6, -this.h * 0.65, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Eye shine
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(eyeOffsetX - 5, -this.h * 0.68, 1.2, 0, Math.PI * 2);
-      ctx.arc(eyeOffsetX + 5, -this.h * 0.68, 1.2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Antenna / Head badge
-      ctx.fillStyle = colorDarkTeal;
-      ctx.beginPath();
-      ctx.arc(0, -this.h - 2, 4, 0, Math.PI * 2);
-      ctx.fill();
-
+    if (sprite) {
+      // Pixel-art image character rendering
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sprite, -this.w / 2, -this.h, this.w, this.h);
     } else {
-      // PLAYER 2 (Reality B): Stylized Coral Cube Bot with Visor
-      const colorCoral = '#ff512f';
-      const colorDarkCoral = '#991b1b';
-      const colorVisor = '#38bdf8';
-
-      // Main Body (Slightly squarer bot shape)
-      ctx.fillStyle = colorCoral;
-      ctx.beginPath();
-      ctx.roundRect(-this.w / 2, -this.h, this.w, this.h, 8);
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#fff';
-      ctx.stroke();
-
-      // Visor Glow
-      ctx.fillStyle = colorVisor;
-      const visorX = this.facing === 1 ? -this.w / 2 + 6 : -this.w / 2 + 2;
-      ctx.beginPath();
-      ctx.roundRect(visorX, -this.h * 0.72, 22, 10, 4);
-      ctx.fill();
-      ctx.shadowColor = colorVisor;
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(visorX + (this.facing === 1 ? 12 : 4), -this.h * 0.68, 4, 4);
-      ctx.shadowBlur = 0;
-
-      // Bot Ears
-      ctx.fillStyle = colorDarkCoral;
-      ctx.fillRect(-this.w / 2 - 4, -this.h * 0.55, 4, 8);
-      ctx.fillRect(this.w / 2, -this.h * 0.55, 4, 8);
+      // Fallback vector character while loading
+      ctx.fillStyle = this.role === 'p1' ? '#36d1dc' : '#ff512f';
+      ctx.fillRect(-this.w / 2, -this.h, this.w, this.h);
     }
 
     ctx.restore();
@@ -193,8 +169,11 @@ export class Player {
     // Draw Player Indicator Label (P1 / P2)
     ctx.font = 'bold 12px Outfit, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillStyle = this.role === 'p1' ? '#36d1dc' : '#ff512f';
+    ctx.fillStyle = this.role === 'p1' ? '#00e5ff' : '#ff3366';
+    ctx.shadowColor = '#000000';
+    ctx.shadowBlur = 4;
     ctx.fillText(this.role === 'p1' ? 'P1' : 'P2', drawX + this.w / 2, drawY - 10);
+    ctx.shadowBlur = 0;
 
     // Draw Speech Bubble if Chat Message Active
     if (this.chatMessage) {
