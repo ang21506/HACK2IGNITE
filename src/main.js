@@ -1,10 +1,20 @@
 import { Game } from './engine/Game.js';
 import { audioManager } from './engine/AudioManager.js';
+import { CinematicIntro } from './engine/CinematicIntro.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
   const game = new Game(canvas);
   game.run();
+
+  // --- CINEMATIC INTRO ---
+  // Hide all UI panels during intro so only the canvas sequence shows
+  document.getElementById('uiOverlay').style.visibility = 'hidden';
+  new CinematicIntro(canvas, game.ctx, () => {
+    // Restore UI and show main menu
+    document.getElementById('uiOverlay').style.visibility = 'visible';
+    document.getElementById('mainMenu')?.classList.add('active');
+  });
 
   // Panels
   const mainMenu = document.getElementById('mainMenu');

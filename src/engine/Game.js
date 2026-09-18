@@ -217,6 +217,7 @@ export class Game {
   }
 
   update(dt) {
+    this.lastDt = dt; // stored so render() can use it for particle animation
     if (this.state !== 'PLAYING') return;
 
     this.levelTime = (performance.now() - this.levelStartTime) / 1000;
@@ -347,9 +348,16 @@ export class Game {
     this.state = 'VICTORY';
     this.updateUIVisibility();
 
-    const victoryPanel = document.getElementById('victoryScreen');
-    const statTime = document.getElementById('statTime');
-    const statRespawns = document.getElementById('statRespawns');
+    // Invalidate parallax cache so next level gets fresh atmosphere
+    delete this._vpCity_p1;
+    delete this._vpCity_p2;
+    delete this._gameRain_p1;
+    delete this._gameRain_p2;
+
+    const victoryPanel  = document.getElementById('victoryScreen');
+    const statTime      = document.getElementById('statTime');
+    const statRespawns  = document.getElementById('statRespawns');
+    const statTeamwork  = document.getElementById('statTeamwork');
 
     if (victoryPanel) victoryPanel.classList.add('active');
 
@@ -357,6 +365,17 @@ export class Game {
     const secs = Math.floor(this.levelTime % 60).toString().padStart(2, '0');
     if (statTime) statTime.textContent = `${mins}:${secs}`;
     if (statRespawns) statRespawns.textContent = this.respawnCount.toString();
+
+    // Teamwork rank: S = 0 respawns, A = 1-2, B = 3-4, C = 5+
+    if (statTeamwork) {
+      const rank = this.respawnCount === 0 ? 'S'
+                 : this.respawnCount <= 2  ? 'A'
+                 : this.respawnCount <= 4  ? 'B' : 'C';
+      statTeamwork.textContent = rank;
+      statTeamwork.style.color = rank === 'S' ? '#ffb703'
+                               : rank === 'A' ? '#36d1dc'
+                               : rank === 'B' ? '#a855f7' : '#ff512f';
+    }
   }
 
   nextLevel() {
@@ -417,39 +436,40 @@ export class Game {
     this.ctx.save();
     this.ctx.translate(vx, vy);
 
-    // Render User Provided Parchment Texture Background
+    // ── Base sky fill ──
+    const skyBase = viewerRole === 'p1' ? '#070e18' : '#150508';
+    this.ctx.fillStyle = skyBase;
+    this.ctx.fillRect(0, 0, vw, vh);
+
+    // ── Parallax city background layers ──
+    this._drawViewportParallax(vw, vh, camera, viewerRole);
+
+    // ── Reality tint overlay (preserves bg_texture if loaded) ──
     if (!this.bgImg) {
       this.bgImg = new Image();
       this.bgImg.src = '/assets/bg_texture.png';
     }
-
     if (this.bgImg.complete && this.bgImg.naturalWidth !== 0) {
       if (!this.bgPattern) {
         this.bgPattern = this.ctx.createPattern(this.bgImg, 'repeat');
       }
-      this.ctx.fillStyle = this.bgPattern || '#d4b886';
+      this.ctx.globalAlpha = 0.08; // very subtle texture overlay
+      this.ctx.fillStyle = this.bgPattern || 'transparent';
       this.ctx.fillRect(0, 0, vw, vh);
-
-      // Subtle Reality Ambiance Tint Overlay
-      if (viewerRole === 'p1') {
-        this.ctx.fillStyle = 'rgba(9, 30, 42, 0.45)'; // Teal Reality A tint
-      } else {
-        this.ctx.fillStyle = 'rgba(42, 9, 20, 0.45)'; // Coral Reality B tint
-      }
-      this.ctx.fillRect(0, 0, vw, vh);
-    } else {
-      // Fallback
-      this.ctx.fillStyle = viewerRole === 'p1' ? '#091e2a' : '#2a0914';
-      this.ctx.fillRect(0, 0, vw, vh);
+      this.ctx.globalAlpha = 1;
     }
+    // Reality colour tint
+    this.ctx.fillStyle = viewerRole === 'p1'
+      ? 'rgba(9,30,42,0.28)'
+      : 'rgba(42,9,20,0.28)';
+    this.ctx.fillRect(0, 0, vw, vh);
 
-    // Grid pattern overlay
-    this.ctx.strokeStyle = viewerRole === 'p1' ? 'rgba(54, 209, 220, 0.08)' : 'rgba(255, 81, 47, 0.08)';
+    // ── Grid pattern overlay ──
+    this.ctx.strokeStyle = viewerRole === 'p1' ? 'rgba(54,209,220,0.06)' : 'rgba(255,81,47,0.06)';
     this.ctx.lineWidth = 1;
     const gridStep = 40;
     const startX = -(camera.x % gridStep);
     const startY = -(camera.y % gridStep);
-
     for (let x = startX; x < vw; x += gridStep) {
       this.ctx.beginPath();
       this.ctx.moveTo(x, 0);
@@ -462,6 +482,9 @@ export class Game {
       this.ctx.lineTo(vw, y);
       this.ctx.stroke();
     }
+
+    // ── Rain overlay (drawn above grid, below game objects) ──
+    this._drawViewportRain(vw, vh, viewerRole);
 
     // Render Platforms
     for (const plat of this.platforms) {
@@ -499,14 +522,271 @@ export class Game {
   renderMenuBackground() {
     const W = this.canvas.width;
     const H = this.canvas.height;
+    const t = this.lastTime / 1000;
+    const dt = this.lastDt || 0.016;
 
-    // Sleek Dark Menu Background Gradient
-    const grad = this.ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, '#0d0f17');
-    grad.addColorStop(0.5, '#12172b');
-    grad.addColorStop(1, '#090b12');
-    this.ctx.fillStyle = grad;
+    // Lazy-init city data (re-init if canvas resized)
+    if (!this._menuCity || this._menuCityW !== W) {
+      this._menuCityW = W;
+      this._menuCity = this._buildMenuCity(W, H);
+      this._menuRain = this._buildRainPool(90, W, H);
+    }
+
+    // ── Sky gradient ──
+    const sky = this.ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#010208');
+    sky.addColorStop(0.55, '#0d0f17');
+    sky.addColorStop(1, '#0f1525');
+    this.ctx.fillStyle = sky;
     this.ctx.fillRect(0, 0, W, H);
+
+    // ── Moon glow ──
+    const mx = W * 0.78, my = H * 0.14;
+    const moonGrad = this.ctx.createRadialGradient(mx, my, 0, mx, my, 140);
+    moonGrad.addColorStop(0, 'rgba(180,210,255,0.10)');
+    moonGrad.addColorStop(0.4, 'rgba(100,150,255,0.04)');
+    moonGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    this.ctx.fillStyle = moonGrad;
+    this.ctx.fillRect(0, 0, W, H);
+
+    // ── Far buildings (silhouette layer) ──
+    for (const b of this._menuCity.far) {
+      this.ctx.fillStyle = '#06080f';
+      this.ctx.fillRect(b.x, b.y, b.w, b.h);
+      for (const win of b.windows) {
+        const off = win.flicker && (Math.sin(t * win.fr + win.ph) > 0.75);
+        if (win.lit && !off) {
+          this.ctx.fillStyle = win.warm
+            ? `rgba(255,200,120,${0.25 + win.br * 0.2})`
+            : `rgba(140,185,255,${0.20 + win.br * 0.2})`;
+          this.ctx.fillRect(win.x, win.y, 3, 4);
+        }
+      }
+    }
+
+    // ── Horizon fog band ──
+    const fogY = H * 0.58;
+    const fog = this.ctx.createLinearGradient(0, fogY - 30, 0, fogY + 60);
+    fog.addColorStop(0, 'rgba(13,15,23,0)');
+    fog.addColorStop(0.5, 'rgba(13,15,23,0.55)');
+    fog.addColorStop(1, 'rgba(13,15,23,0)');
+    this.ctx.fillStyle = fog;
+    this.ctx.fillRect(0, fogY - 30, W, 90);
+
+    // ── Mid buildings ──
+    for (const b of this._menuCity.mid) {
+      this.ctx.fillStyle = '#09090f';
+      this.ctx.fillRect(b.x, b.y, b.w, b.h);
+      // Rooftop antenna / light
+      if (b.antenna) {
+        const pulse = Math.sin(t * 1.4 + b.ph) > 0.5;
+        this.ctx.fillStyle = pulse ? 'rgba(255,60,60,0.9)' : 'rgba(255,60,60,0.3)';
+        this.ctx.fillRect(b.x + b.w / 2 - 1, b.y - 10, 2, 10);
+        this.ctx.fillRect(b.x + b.w / 2 - 2, b.y - 2, 4, 4);
+      }
+      for (const win of b.windows) {
+        const off = win.flicker && (Math.sin(t * win.fr + win.ph) > 0.65);
+        if (win.lit && !off) {
+          this.ctx.fillStyle = win.warm
+            ? `rgba(255,210,130,${0.50 + win.br * 0.3})`
+            : `rgba(120,175,255,${0.45 + win.br * 0.3})`;
+          this.ctx.fillRect(win.x, win.y, 5, 6);
+        }
+      }
+    }
+
+    // ── Ground plane + wet road reflection ──
+    const groundY = H - 55;
+    this.ctx.fillStyle = '#070810';
+    this.ctx.fillRect(0, groundY, W, H - groundY);
+    // Cyan tinted puddle sheen (Reality A)
+    const roadRef = this.ctx.createLinearGradient(0, groundY, 0, H);
+    roadRef.addColorStop(0, 'rgba(36,180,200,0.07)');
+    roadRef.addColorStop(0.6, 'rgba(36,180,200,0.03)');
+    roadRef.addColorStop(1, 'rgba(0,0,0,0)');
+    this.ctx.fillStyle = roadRef;
+    this.ctx.fillRect(0, groundY, W, H - groundY);
+
+    // ── Rain particles ──
+    this._updateRainPool(this._menuRain, W, H, dt);
+    this.ctx.save();
+    this.ctx.lineWidth = 0.9;
+    for (const p of this._menuRain) {
+      this.ctx.strokeStyle = `rgba(170,205,255,${p.op})`;
+      this.ctx.beginPath();
+      this.ctx.moveTo(p.x, p.y);
+      this.ctx.lineTo(p.x - p.len * 0.18, p.y + p.len);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+
+    // ── Vignette ──
+    const vig = this.ctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.82);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(0,0,0,0.60)');
+    this.ctx.fillStyle = vig;
+    this.ctx.fillRect(0, 0, W, H);
+  }
+
+  // ── City generation helpers ──────────────────────────────────────────────
+
+  _drawViewportParallax(vw, vh, camera, role) {
+    // Level-based intensity (heavier silhouettes as levels progress)
+    const lvl = this.currentLevelIndex || 0;
+    const intensity = 0.55 + lvl * 0.09;
+
+    const isA = role === 'p1';
+    const farCol  = isA ? `rgba(8,16,28,${intensity * 0.7})`  : `rgba(20,6,12,${intensity * 0.7})`;
+    const midCol  = isA ? `rgba(10,20,34,${intensity})`        : `rgba(24,8,15,${intensity})`;
+    const fogCol  = isA ? 'rgba(7,14,23,0.45)'                 : 'rgba(18,5,10,0.45)';
+
+    // Lazy-init per-role parallax data
+    const key = `_vpCity_${role}`;
+    if (!this[key] || this[`${key}_vw`] !== vw) {
+      this[`${key}_vw`] = vw;
+      let s = role === 'p1' ? 7919 : 6271;
+      const rng = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 0xffffffff; };
+      const far = [], mid = [];
+      // Far layer — thin distant skyscrapers
+      for (let i = 0; i < 14; i++) {
+        const bw = 20 + rng() * 50;
+        const bh = vh * 0.15 + rng() * vh * 0.30;
+        far.push({ x: (vw / 14) * i + rng() * 20, y: vh - bh, w: bw, h: bh });
+      }
+      // Mid layer — closer, taller, with rooftop details
+      for (let i = 0; i < 8; i++) {
+        const bw = 35 + rng() * 80;
+        const bh = vh * 0.18 + rng() * vh * 0.22;
+        mid.push({ x: (vw / 8) * i - 10 + rng() * 20, y: vh - bh, w: bw, h: bh, ant: rng() > 0.5 });
+      }
+      this[key] = { far, mid };
+    }
+    const city = this[key];
+
+    // Far parallax (0.08x camera scroll)
+    const offFar = -(camera.x * 0.08) % vw;
+    this.ctx.fillStyle = farCol;
+    for (const b of city.far) {
+      this.ctx.fillRect(b.x + offFar, b.y, b.w, b.h);
+      this.ctx.fillRect(b.x + offFar + vw, b.y, b.w, b.h); // wrap
+    }
+
+    // Fog
+    const fogGrad = this.ctx.createLinearGradient(0, vh * 0.55, 0, vh * 0.75);
+    fogGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    fogGrad.addColorStop(0.5, fogCol);
+    fogGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    this.ctx.fillStyle = fogGrad;
+    this.ctx.fillRect(0, vh * 0.55, vw, vh * 0.2);
+
+    // Mid parallax (0.25x camera scroll)
+    const offMid = -(camera.x * 0.25) % vw;
+    this.ctx.fillStyle = midCol;
+    const t = this.lastTime / 1000;
+    for (const b of city.mid) {
+      this.ctx.fillRect(b.x + offMid, b.y, b.w, b.h);
+      this.ctx.fillRect(b.x + offMid + vw, b.y, b.w, b.h);
+      if (b.ant) {
+        const pulse = Math.sin(t * 1.2 + b.x) > 0.5;
+        this.ctx.fillStyle = pulse ? 'rgba(255,50,50,0.85)' : 'rgba(255,50,50,0.2)';
+        const bxr = b.x + offMid + b.w / 2;
+        this.ctx.fillRect(bxr - 1, b.y - 8, 2, 8);
+        this.ctx.fillRect(bxr - 2, b.y - 1, 4, 3);
+        this.ctx.fillStyle = midCol;
+      }
+    }
+  }
+
+  _drawViewportRain(vw, vh, role) {
+    // Per-role rain pool — lighter during early levels
+    const lvl = this.currentLevelIndex || 0;
+    const count = 40 + lvl * 8; // Level 1: 40 drops, Level 5: 80 drops
+    const poolKey = `_gameRain_${role}`;
+    if (!this[poolKey] || this[poolKey].length !== count) {
+      this[poolKey] = this._buildRainPool(count, vw, vh);
+    }
+    this._updateRainPool(this[poolKey], vw, vh, this.lastDt || 0.016);
+
+    this.ctx.save();
+    this.ctx.lineWidth = 0.75;
+    for (const p of this[poolKey]) {
+      // Tint rain to match reality colour
+      const r = role === 'p1' ? '150,210,255' : '255,160,140';
+      this.ctx.strokeStyle = `rgba(${r},${p.op * 0.65})`;
+      this.ctx.beginPath();
+      this.ctx.moveTo(p.x, p.y);
+      this.ctx.lineTo(p.x - p.len * 0.18, p.y + p.len);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
+  _buildMenuCity(W, H) {
+    // Deterministic seeded RNG so city looks same every render
+    let s = 1337;
+    const rng = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 0xffffffff; };
+
+    const makeBuildings = (count, yMin, yMax, wMin, wMax, hasAntenna) => {
+      const arr = [];
+      const slotW = W / count;
+      for (let i = 0; i < count; i++) {
+        const bw = wMin + rng() * (wMax - wMin);
+        const bh = yMin + rng() * (yMax - yMin);
+        const bx = slotW * i + rng() * (slotW - bw);
+        const by = H - 55 - bh;
+        const windows = [];
+        const cols = Math.max(1, Math.floor((bw - 8) / 14));
+        const rows = Math.max(1, Math.floor((bh - 10) / 18));
+        for (let c = 0; c < cols; c++) {
+          for (let r = 0; r < rows; r++) {
+            if (rng() > 0.45) {
+              windows.push({
+                x: bx + 5 + c * 14,
+                y: by + 6 + r * 18,
+                lit: rng() > 0.35,
+                flicker: rng() > 0.72,
+                fr: 0.4 + rng() * 4,
+                ph: rng() * Math.PI * 2,
+                br: rng(),
+                warm: rng() > 0.45
+              });
+            }
+          }
+        }
+        arr.push({ x: bx, y: by, w: bw, h: bh, windows, antenna: hasAntenna && rng() > 0.6, ph: rng() * Math.PI * 2 });
+      }
+      return arr;
+    };
+
+    return {
+      far: makeBuildings(16, H * 0.28, H * 0.48, 28, 70, false),
+      mid: makeBuildings(10, H * 0.20, H * 0.38, 44, 100, true)
+    };
+  }
+
+  _buildRainPool(count, W, H) {
+    const pool = [];
+    for (let i = 0; i < count; i++) {
+      pool.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        spd: 280 + Math.random() * 260,
+        len: 9 + Math.random() * 14,
+        op: 0.08 + Math.random() * 0.22
+      });
+    }
+    return pool;
+  }
+
+  _updateRainPool(pool, W, H, dt) {
+    for (const p of pool) {
+      p.y += p.spd * dt;
+      p.x -= p.spd * 0.18 * dt;
+      if (p.y > H + p.len) {
+        p.y = -p.len;
+        p.x = Math.random() * (W + 60);
+      }
+    }
   }
 
   // Network Event Handlers

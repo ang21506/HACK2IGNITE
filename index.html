@@ -198,24 +198,43 @@
 
         <!-- Level Description Toast -->
         <div id="hudDescToast" class="level-desc-toast hidden"></div>
+
+        <!-- Reality Legend Bar -->
+        <div class="hud-legend">
+          <span class="legend-a">▲ YOUR REALITY</span>
+          <span class="legend-divider">|</span>
+          <span class="legend-both">★ SHARED</span>
+          <span class="legend-divider">|</span>
+          <span class="legend-b">■ PARTNER'S REALITY</span>
+        </div>
       </div>
 
       <!-- LEVEL CLEAR / WIN SCREEN -->
       <div id="victoryScreen" class="ui-panel">
-        <h2 class="panel-title victory-title">LEVEL COMPLETE!</h2>
-        <p class="victory-sub">Perfect Teamwork & Synchronization!</p>
+        <div class="victory-header">
+          <div class="victory-glow-ring"></div>
+          <h2 class="panel-title victory-title">MISSION<br>COMPLETE</h2>
+          <p class="victory-sub">Perfect Teamwork &amp; Synchronization!</p>
+        </div>
         <div class="victory-stats">
           <div class="stat-box">
+            <span class="stat-icon">⏱</span>
             <span class="stat-num" id="statTime">01:45</span>
             <span class="stat-label">COMPLETION TIME</span>
           </div>
           <div class="stat-box">
+            <span class="stat-icon">💀</span>
             <span class="stat-num" id="statRespawns">0</span>
             <span class="stat-label">RESPAWNS</span>
           </div>
+          <div class="stat-box">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-num" id="statTeamwork">S</span>
+            <span class="stat-label">TEAMWORK RANK</span>
+          </div>
         </div>
         <div class="panel-actions">
-          <button id="btnNextLevel" class="btn btn-primary">NEXT LEVEL</button>
+          <button id="btnNextLevel" class="btn btn-primary btn-glow">NEXT LEVEL →</button>
           <button id="btnVictoryMenu" class="btn btn-dark">MAIN MENU</button>
         </div>
       </div>
