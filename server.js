@@ -210,11 +210,25 @@ wss.on('connection', (ws) => {
         }
 
         case 'CHAT_MESSAGE': {
-          if (currentRoom) {
+          if (currentRoom && typeof data.text === 'string') {
+            // Server-side length cap (client maxlength is bypassable via raw WS)
+            const text = data.text.trim().slice(0, 60);
+            if (!text) break;
+
+            // Rate limiting: max 5 messages per 3-second window per connection
+            const now = Date.now();
+            if (!ws._chatTs) ws._chatTs = [];
+            ws._chatTs = ws._chatTs.filter(t => now - t < 3000);
+            if (ws._chatTs.length >= 5) {
+              // Silently drop — no error sent back (avoids timing oracle)
+              break;
+            }
+            ws._chatTs.push(now);
+
             const payload = JSON.stringify({
               type: 'CHAT_MESSAGE',
               sender: playerRole,
-              text: data.text
+              text
             });
             currentRoom.host?.send(payload);
             currentRoom.client?.send(payload);
