@@ -1,10 +1,20 @@
 import { Game } from './engine/Game.js';
 import { audioManager } from './engine/AudioManager.js';
+import { CinematicIntro } from './engine/CinematicIntro.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
   const game = new Game(canvas);
   game.run();
+
+  // --- CINEMATIC INTRO ---
+  // Hide all UI panels during intro so only the canvas sequence shows
+  document.getElementById('uiOverlay').style.visibility = 'hidden';
+  new CinematicIntro(canvas, game.ctx, () => {
+    // Restore UI and show main menu
+    document.getElementById('uiOverlay').style.visibility = 'visible';
+    document.getElementById('mainMenu')?.classList.add('active');
+  });
 
   // Panels
   const mainMenu = document.getElementById('mainMenu');
@@ -127,6 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
     e.target.textContent = game.localViewportMode === 'SPLIT' ? 'SPLIT SCREEN' : 'SINGLE SCREEN';
   });
 
+  document.getElementById('toggleColorblind')?.addEventListener('click', (e) => {
+    game.colorblindMode = !game.colorblindMode;
+    // Update button label to show current state
+    e.target.textContent = game.colorblindMode ? 'PATTERNS & ICONS ✓' : 'PATTERNS & ICONS';
+    e.target.style.background = game.colorblindMode ? '#0f172a' : '';
+    e.target.style.color = game.colorblindMode ? '#4ade80' : '';
+  });
+
   // Back Buttons
   document.getElementById('btnHostBack')?.addEventListener('click', () => showPanel(mainMenu));
   document.getElementById('btnJoinBack')?.addEventListener('click', () => showPanel(mainMenu));
@@ -138,8 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnVictoryMenu')?.addEventListener('click', () => {
-    showPanel(mainMenu);
     game.state = 'MENU';
     game.updateUIVisibility();
+    showPanel(mainMenu);
+  });
+
+  // Disconnect Overlay — Return to Menu
+  document.getElementById('btnReturnToMenu')?.addEventListener('click', () => {
+    game.returnToMenuFromDisconnect();
   });
 });

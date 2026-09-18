@@ -47,9 +47,11 @@ if (isProduction) {
 }
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+// maxPayload: reject frames larger than 8 KB — closes the 100 MB default DoS surface
+const wss = new WebSocketServer({ server, maxPayload: 8192 });
 
-const rooms = new Map(); // roomCode -> Room Object
+const rooms = new Map();   // roomCode -> Room Object
+const ipRooms = new Map(); // ip -> number of active rooms created from that IP
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -70,6 +72,14 @@ wss.on('connection', (ws) => {
 
       switch (data.type) {
         case 'CREATE_ROOM': {
+          // Per-IP room cap: prevent one IP from exhausting server memory
+          const ip = ws._socket?.remoteAddress || 'unknown';
+          const activeForIp = ipRooms.get(ip) || 0;
+          if (activeForIp >= 3) {
+            ws.send(JSON.stringify({ type: 'ERROR', message: 'Room creation limit reached. Please close an existing room first.' }));
+            break;
+          }
+
           let code = generateRoomCode();
           while (rooms.has(code)) {
             code = generateRoomCode();
@@ -83,6 +93,7 @@ wss.on('connection', (ws) => {
             objects: {}
           };
           rooms.set(code, currentRoom);
+          ipRooms.set(ip, activeForIp + 1);
           playerRole = 'p1';
 
           ws.send(JSON.stringify({
@@ -92,7 +103,7 @@ wss.on('connection', (ws) => {
             localIp: getLocalIp(),
             port: PORT
           }));
-          console.log(`Room created: ${code} by Host`);
+          console.log(`Room created: ${code} by Host (IP: ${ip}, active rooms for IP: ${activeForIp + 1})`);
           break;
         }
 
@@ -102,6 +113,12 @@ wss.on('connection', (ws) => {
 
           if (!room) {
             ws.send(JSON.stringify({ type: 'ERROR', message: 'Room code not found!' }));
+            return;
+          }
+
+          // Prevent joining a game already in progress — would cause immediate desync
+          if (room.gameState === 'PLAYING') {
+            ws.send(JSON.stringify({ type: 'ERROR', message: 'Game already in progress. Please wait for the next session.' }));
             return;
           }
 
@@ -200,9 +217,14 @@ wss.on('connection', (ws) => {
 
         case 'RESPAWN': {
           if (currentRoom) {
-            const payload = JSON.stringify({
-              type: 'RESPAWN'
-            });
+            // 1-second per-connection cooldown: prevents griefing via rapid-fire respawn spam.
+            // Both players legitimately trigger RESPAWN on fall detection, so we use a
+            // cooldown rather than a host-only guard (which would break P2 fall recovery).
+            const now = Date.now();
+            if (ws._lastRespawn && now - ws._lastRespawn < 1000) break;
+            ws._lastRespawn = now;
+
+            const payload = JSON.stringify({ type: 'RESPAWN' });
             currentRoom.host?.send(payload);
             currentRoom.client?.send(payload);
           }
@@ -210,11 +232,25 @@ wss.on('connection', (ws) => {
         }
 
         case 'CHAT_MESSAGE': {
-          if (currentRoom) {
+          if (currentRoom && typeof data.text === 'string') {
+            // Server-side length cap (client maxlength is bypassable via raw WS)
+            const text = data.text.trim().slice(0, 60);
+            if (!text) break;
+
+            // Rate limiting: max 5 messages per 3-second window per connection
+            const now = Date.now();
+            if (!ws._chatTs) ws._chatTs = [];
+            ws._chatTs = ws._chatTs.filter(t => now - t < 3000);
+            if (ws._chatTs.length >= 5) {
+              // Silently drop — no error sent back (avoids timing oracle)
+              break;
+            }
+            ws._chatTs.push(now);
+
             const payload = JSON.stringify({
               type: 'CHAT_MESSAGE',
               sender: playerRole,
-              text: data.text
+              text
             });
             currentRoom.host?.send(payload);
             currentRoom.client?.send(payload);
@@ -238,6 +274,11 @@ wss.on('connection', (ws) => {
       }
       if (playerRole === 'p1') {
         rooms.delete(currentRoom.code);
+        // Decrement per-IP room count when host closes their room
+        const ip = ws._socket?.remoteAddress || 'unknown';
+        const prev = ipRooms.get(ip) || 1;
+        if (prev <= 1) ipRooms.delete(ip);
+        else ipRooms.set(ip, prev - 1);
       } else if (currentRoom.client === ws) {
         currentRoom.client = null;
       }

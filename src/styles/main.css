@@ -728,3 +728,166 @@ html, body {
   color: var(--text-muted);
   font-weight: 700;
 }
+
+/* Disconnect Overlay */
+.disconnect-icon {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.7));
+}
+
+.disconnect-title {
+  color: #ef4444;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.45);
+}
+
+.disconnect-msg {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* Level Description Toast */
+.level-desc-toast {
+  position: absolute;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 12, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 12px 28px;
+  max-width: 560px;
+  width: 90%;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.level-desc-toast.hidden {
+  display: none;
+}
+
+/* ── Reality Legend Bar ────────────────────────────────────────────────── */
+.hud-legend {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(8, 10, 18, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 30px;
+  padding: 6px 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  pointer-events: none;
+  animation: fadeInUp 0.6s ease 0.3s both;
+}
+.legend-a    { color: var(--reality-a); }
+.legend-both { color: var(--both-reality); }
+.legend-b    { color: var(--reality-b); }
+.legend-divider { color: rgba(255,255,255,0.2); font-weight: 300; }
+
+/* ── Victory Screen Upgrades ───────────────────────────────────────────── */
+.victory-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.victory-glow-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-gold);
+  box-shadow: 0 0 40px rgba(255,183,3,0.25), inset 0 0 40px rgba(255,183,3,0.08);
+  animation: ringPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ringPulse {
+  0%, 100% { opacity: 0.6; transform: translate(-50%,-50%) scale(1); }
+  50%       { opacity: 1;   transform: translate(-50%,-50%) scale(1.06); }
+}
+
+.victory-title {
+  font-size: 1.8rem !important;
+  line-height: 1.1;
+  text-align: center;
+  background: linear-gradient(135deg, var(--accent-gold), #ffe066);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none !important;
+  filter: drop-shadow(0 0 16px rgba(255,183,3,0.5));
+  animation: victoryDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes victoryDrop {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.stat-icon {
+  display: block;
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.stat-box {
+  animation: statCountIn 0.4s ease both;
+}
+.stat-box:nth-child(1) { animation-delay: 0.2s; }
+.stat-box:nth-child(2) { animation-delay: 0.35s; }
+.stat-box:nth-child(3) { animation-delay: 0.5s; }
+
+@keyframes statCountIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Teamwork rank special colouring */
+#statTeamwork { color: var(--accent-gold); font-size: 1.8rem !important; }
+
+/* ── Utility animations ─────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── HUD timer urgency pulse (<60s warning) ─────────────────────────────── */
+.hud-timer-urgent {
+  animation: timerUrgent 0.6s ease-in-out infinite;
+  color: #ef4444 !important;
+}
+@keyframes timerUrgent {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ── Victory panel entrance ─────────────────────────────────────────────── */
+#victoryScreen.active {
+  animation: panelSlideIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
