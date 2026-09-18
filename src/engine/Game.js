@@ -143,6 +143,8 @@ export class Game {
     if (hudTitle) hudTitle.textContent = data.name;
 
     this.showNotification(`LOADED: ${data.name}`);
+    // Show the level description as a secondary toast below the banner
+    if (data.description) this.showLevelDescription(data.description);
   }
 
   startLocalGame(levelIndex = 0) {
@@ -180,6 +182,18 @@ export class Game {
       banner.classList.remove('hidden');
       setTimeout(() => banner.classList.add('hidden'), 2500);
     }
+  }
+
+  showLevelDescription(text) {
+    const toast = document.getElementById('hudDescToast');
+    if (!toast) return;
+    // Show description after the level-name banner hides (2.5s + tiny gap)
+    setTimeout(() => {
+      toast.textContent = text;
+      toast.classList.remove('hidden');
+      // Auto-hide after 4 seconds
+      setTimeout(() => toast.classList.add('hidden'), 4000);
+    }, 2700);
   }
 
   respawnAtCheckpoint() {
