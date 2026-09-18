@@ -537,7 +537,32 @@ export class Game {
   }
 
   onRemotePlayerDisconnected() {
-    this.showNotification('PARTNER DISCONNECTED!');
+    // Pause the game loop rendering to prevent the frozen ghost player
+    // from looking like the game is still running normally
+    this.state = 'DISCONNECTED';
+    this.updateUIVisibility();
+    const overlay = document.getElementById('disconnectOverlay');
+    overlay?.classList.add('active');
+  }
+
+  returnToMenuFromDisconnect() {
+    // Close the WS connection cleanly
+    if (this.net.ws && this.net.ws.readyState === WebSocket.OPEN) {
+      this.net.ws.close();
+    }
+    this.net.connected = false;
+    this.net.roomCode = null;
+    this.net.isHost = false;
+    this.net.playerRole = 'p1';
+
+    // Hide the overlay
+    document.getElementById('disconnectOverlay')?.classList.remove('active');
+
+    // Return to main menu
+    this.state = 'MENU';
+    this.updateUIVisibility();
+    document.getElementById('mainMenu')?.classList.add('active');
+    document.getElementById('hudLayer')?.classList.add('hidden');
   }
 
   onNetworkError(msg) {

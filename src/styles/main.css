@@ -653,3 +653,48 @@ html, body {
   color: var(--text-muted);
   font-weight: 700;
 }
+
+/* Disconnect Overlay */
+.disconnect-icon {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.7));
+}
+
+.disconnect-title {
+  color: #ef4444;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.45);
+}
+
+.disconnect-msg {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* Level Description Toast */
+.level-desc-toast {
+  position: absolute;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 12, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 12px 28px;
+  max-width: 560px;
+  width: 90%;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.level-desc-toast.hidden {
+  display: none;
+}

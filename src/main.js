@@ -136,4 +136,9 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state = 'MENU';
     game.updateUIVisibility();
   });
+
+  // Disconnect Overlay — Return to Menu
+  document.getElementById('btnReturnToMenu')?.addEventListener('click', () => {
+    game.returnToMenuFromDisconnect();
+  });
 });
