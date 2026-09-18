@@ -200,9 +200,14 @@ wss.on('connection', (ws) => {
 
         case 'RESPAWN': {
           if (currentRoom) {
-            const payload = JSON.stringify({
-              type: 'RESPAWN'
-            });
+            // 1-second per-connection cooldown: prevents griefing via rapid-fire respawn spam.
+            // Both players legitimately trigger RESPAWN on fall detection, so we use a
+            // cooldown rather than a host-only guard (which would break P2 fall recovery).
+            const now = Date.now();
+            if (ws._lastRespawn && now - ws._lastRespawn < 1000) break;
+            ws._lastRespawn = now;
+
+            const payload = JSON.stringify({ type: 'RESPAWN' });
             currentRoom.host?.send(payload);
             currentRoom.client?.send(payload);
           }
