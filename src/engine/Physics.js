@@ -52,6 +52,9 @@ export class Physics {
       if (Physics.checkAABB(playerRectY, platform)) {
         if (player.vy > 0) {
           // Landing on platform top
+          if (player.vy > 350 && player.game) {
+            player.game.triggerScreenShake(4, 0.15);
+          }
           player.y = platform.y - player.h;
           player.vy = 0;
           player.grounded = true;

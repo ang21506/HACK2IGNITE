@@ -383,16 +383,16 @@ export class LevelExit {
     ctx.shadowColor = bothReady ? '#22c55e' : '#eab308';
     ctx.shadowBlur = 20;
 
-    ctx.rotate(this.rot);
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 28, 36, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.rotate(-this.rot * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 16, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // Render Portal Energy Orbiters
+    for (let i = 0; i < 6; i++) {
+      const angle = this.rot * 1.5 + (i * Math.PI / 3);
+      const px = Math.cos(angle) * 36;
+      const py = Math.sin(angle) * 44;
+      ctx.fillStyle = bothReady ? '#4ade80' : '#fde047';
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
     ctx.shadowBlur = 0;

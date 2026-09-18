@@ -12,6 +12,18 @@
 </head>
 <body>
   <div id="appContainer">
+    <!-- Top System Header Bar (Unity/Unreal Game Style) -->
+    <div id="unityHeaderBar">
+      <div class="header-badge left">
+        <span class="status-indicator-dot"></span>
+        <span class="header-text">SPLIT REALITY ENGINE v1.0.4</span>
+      </div>
+      <div class="header-badge right">
+        <span class="header-text">ONLINE / LAN</span>
+        <span class="ping-badge">PING: 14ms</span>
+      </div>
+    </div>
+
     <!-- Game Render Canvas -->
     <canvas id="gameCanvas"></canvas>
 
@@ -29,16 +41,16 @@
         </div>
 
         <div class="menu-actions">
-          <button id="btnHost" class="btn btn-primary btn-glow">
+          <button id="btnHost" class="btn btn-primary btn-glow btn-unity">
             HOST GAME
           </button>
-          <button id="btnJoin" class="btn btn-secondary">
+          <button id="btnJoin" class="btn btn-secondary btn-unity">
             JOIN GAME
           </button>
-          <button id="btnLocal" class="btn btn-accent">
+          <button id="btnLocal" class="btn btn-accent btn-unity">
             LOCAL 2-PLAYER (1 KEYBOARD)
           </button>
-          <button id="btnSettings" class="btn btn-dark">
+          <button id="btnSettings" class="btn btn-dark btn-unity">
             SETTINGS
           </button>
         </div>
@@ -86,8 +98,8 @@
         </div>
 
         <div class="panel-actions">
-          <button id="btnStartGame" class="btn btn-primary" disabled>START GAME</button>
-          <button id="btnHostBack" class="btn btn-dark">BACK TO MENU</button>
+          <button id="btnStartGame" class="btn btn-primary btn-unity" disabled>START GAME</button>
+          <button id="btnHostBack" class="btn btn-dark btn-unity">BACK TO MENU</button>
         </div>
       </div>
 
@@ -107,8 +119,8 @@
         </div>
 
         <div class="panel-actions">
-          <button id="btnJoinConnect" class="btn btn-secondary">CONNECT & JOIN</button>
-          <button id="btnJoinBack" class="btn btn-dark">BACK TO MENU</button>
+          <button id="btnJoinConnect" class="btn btn-secondary btn-unity">CONNECT & JOIN</button>
+          <button id="btnJoinBack" class="btn btn-dark btn-unity">BACK TO MENU</button>
         </div>
       </div>
 
@@ -162,7 +174,7 @@
         </div>
 
         <div class="panel-actions">
-          <button id="btnSettingsBack" class="btn btn-dark btn-pill">CLOSE</button>
+          <button id="btnSettingsBack" class="btn btn-dark btn-pill btn-unity">CLOSE</button>
         </div>
       </div>
 
@@ -170,8 +182,11 @@
       <div id="hudLayer" class="hud-overlay hidden">
         <div class="hud-header">
           <div class="player-badge p1-badge">
-            <span class="p1-indicator">P1</span>
-            <span class="p1-reality">REALITY A</span>
+            <img src="/assets/player1.png" class="hud-avatar" alt="P1 Avatar">
+            <div class="badge-text">
+              <span class="p1-indicator">P1</span>
+              <span class="p1-reality">REALITY A</span>
+            </div>
           </div>
 
           <div class="level-info-badge">
@@ -180,8 +195,11 @@
           </div>
 
           <div class="player-badge p2-badge">
-            <span class="p2-reality">REALITY B</span>
-            <span class="p2-indicator">P2</span>
+            <div class="badge-text">
+              <span class="p2-reality">REALITY B</span>
+              <span class="p2-indicator">P2</span>
+            </div>
+            <img src="/assets/player2.png" class="hud-avatar" alt="P2 Avatar">
           </div>
         </div>
 
@@ -212,8 +230,8 @@
           </div>
         </div>
         <div class="panel-actions">
-          <button id="btnNextLevel" class="btn btn-primary">NEXT LEVEL</button>
-          <button id="btnVictoryMenu" class="btn btn-dark">MAIN MENU</button>
+          <button id="btnNextLevel" class="btn btn-primary btn-unity">NEXT LEVEL</button>
+          <button id="btnVictoryMenu" class="btn btn-dark btn-unity">MAIN MENU</button>
         </div>
       </div>
 

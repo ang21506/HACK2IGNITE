@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     panel?.classList.add('active');
   }
 
+  // --- UI SOUND EFFECTS BINDINGS ---
+  document.querySelectorAll('button, select, input[type="range"]').forEach(el => {
+    el.addEventListener('mouseenter', () => audioManager.playSfx('uiHover'));
+    el.addEventListener('click', () => audioManager.playSfx('uiClick'));
+  });
+
   // --- BUTTON ACTIONS ---
 
   // Host Button

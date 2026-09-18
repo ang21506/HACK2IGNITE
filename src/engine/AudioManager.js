@@ -31,13 +31,43 @@ class AudioManager {
     const now = this.ctx.currentTime;
 
     switch (type) {
+      case 'uiHover': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.04);
+        gain.gain.setValueAtTime(0.04 * this.sfxVolume, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.04);
+        break;
+      }
+
+      case 'uiClick': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.06);
+        gain.gain.setValueAtTime(0.12 * this.sfxVolume, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+        break;
+      }
+
       case 'jump': {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(150, now);
         osc.frequency.exponentialRampToValueAtTime(450, now + 0.12);
-        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.setValueAtTime(0.2 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -52,7 +82,7 @@ class AudioManager {
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(120, now);
         osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
-        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.setValueAtTime(0.25 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -67,7 +97,7 @@ class AudioManager {
         osc.type = 'square';
         osc.frequency.setValueAtTime(523.25, now); // C5
         osc.frequency.setValueAtTime(659.25, now + 0.05); // E5
-        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.setValueAtTime(0.15 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -81,7 +111,7 @@ class AudioManager {
         const gain = this.ctx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(800, now);
-        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.setValueAtTime(0.08 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -96,7 +126,7 @@ class AudioManager {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(200, now);
         osc.frequency.linearRampToValueAtTime(350, now + 0.3);
-        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.setValueAtTime(0.1 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -110,7 +140,7 @@ class AudioManager {
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(80, now);
-        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.setValueAtTime(0.1 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -126,7 +156,7 @@ class AudioManager {
           const gain = this.ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, now + i * 0.08);
-          gain.gain.setValueAtTime(0.18, now + i * 0.08);
+          gain.gain.setValueAtTime(0.18 * this.sfxVolume, now + i * 0.08);
           gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.2);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -143,7 +173,7 @@ class AudioManager {
           const gain = this.ctx.createGain();
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(freq, now + i * 0.1);
-          gain.gain.setValueAtTime(0.2, now + i * 0.1);
+          gain.gain.setValueAtTime(0.2 * this.sfxVolume, now + i * 0.1);
           gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -159,7 +189,7 @@ class AudioManager {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(300, now);
         osc.frequency.linearRampToValueAtTime(100, now + 0.25);
-        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.setValueAtTime(0.2 * this.sfxVolume, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -197,8 +227,8 @@ class AudioManager {
         const gain = this.ctx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, stepTime);
-        gain.gain.setValueAtTime(0.02, stepTime);
-        gain.gain.linearRampToValueAtTime(0.04, stepTime + 0.5);
+        gain.gain.setValueAtTime(0.02 * this.bgmVolume, stepTime);
+        gain.gain.linearRampToValueAtTime(0.04 * this.bgmVolume, stepTime + 0.5);
         gain.gain.exponentialRampToValueAtTime(0.001, stepTime + 1.95);
         osc.connect(gain);
         gain.connect(this.ctx.destination);

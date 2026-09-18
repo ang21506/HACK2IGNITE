@@ -3,7 +3,6 @@ import { LEVEL_DATA } from '../levels/LevelData.js';
 import { Physics } from './Physics.js';
 import { NetworkManager } from './NetworkManager.js';
 import { audioManager } from './AudioManager.js';
-import { RealityMatrix, REALITY } from './RealityMatrix.js';
 
 export class Game {
   constructor(canvas) {
@@ -32,6 +31,14 @@ export class Game {
     this.levelStartTime = 0;
     this.levelTime = 0;
 
+    // Screen Shake Engine
+    this.shakeTime = 0;
+    this.shakeIntensity = 0;
+
+    // Ambient floating dust motes
+    this.ambientMotes = [];
+    this.initAmbientMotes();
+
     // Camera viewports
     this.camP1 = { x: 0, y: 0, w: 640, h: 720 };
     this.camP2 = { x: 0, y: 0, w: 640, h: 720 };
@@ -46,6 +53,24 @@ export class Game {
     this.initInput();
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
+  }
+
+  initAmbientMotes() {
+    this.ambientMotes = [];
+    for (let i = 0; i < 40; i++) {
+      this.ambientMotes.push({
+        x: Math.random() * 2000,
+        y: Math.random() * 1000,
+        vx: (Math.random() - 0.5) * 15,
+        vy: -10 - Math.random() * 15,
+        radius: 1 + Math.random() * 2.5
+      });
+    }
+  }
+
+  triggerScreenShake(intensity = 8, duration = 0.25) {
+    this.shakeIntensity = intensity;
+    this.shakeTime = duration;
   }
 
   resizeCanvas() {
@@ -125,6 +150,10 @@ export class Game {
     this.player1 = new Player('p1', data.spawnP1.x, data.spawnP1.y);
     this.player2 = new Player('p2', data.spawnP2.x, data.spawnP2.y);
 
+    // Pass game reference for screen shake triggers
+    this.player1.game = this;
+    this.player2.game = this;
+
     // Deep copy objects
     this.platforms = data.platforms.map(p => Object.assign(Object.create(Object.getPrototypeOf(p)), p));
     this.switches = data.switches.map(s => Object.assign(Object.create(Object.getPrototypeOf(s)), s));
@@ -183,6 +212,7 @@ export class Game {
 
   respawnAtCheckpoint() {
     audioManager.playSfx('respawn');
+    this.triggerScreenShake(10, 0.3);
     this.respawnCount++;
 
     const spawn1 = this.currentCheckpoint ? { x: this.currentCheckpoint.x, y: this.currentCheckpoint.y } : this.levelData.spawnP1;
@@ -206,6 +236,21 @@ export class Game {
 
     this.levelTime = (performance.now() - this.levelStartTime) / 1000;
 
+    // Update Screen Shake Decay
+    if (this.shakeTime > 0) {
+      this.shakeTime -= dt;
+      if (this.shakeTime <= 0) this.shakeTime = 0;
+    }
+
+    // Update Ambient Motes
+    for (const mote of this.ambientMotes) {
+      mote.x += mote.vx * dt;
+      mote.y += mote.vy * dt;
+      if (mote.y < 0) mote.y = 1000;
+      if (mote.x < 0) mote.x = 2000;
+      if (mote.x > 2000) mote.x = 0;
+    }
+
     // Collect Input States
     const p1Input = {
       left: this.keys['a'] || this.keys['A'],
@@ -226,7 +271,6 @@ export class Game {
       this.player1.update(dt, p1Input);
       this.player2.update(dt, p2Input);
     } else {
-      // Network Mode: Local player updates via local keys, remote player updates via network packets
       if (this.net.playerRole === 'p1') {
         this.player1.update(dt, p1Input);
         this.net.sendPlayerUpdate({
@@ -282,6 +326,7 @@ export class Game {
     for (const cp of this.checkpoints) {
       if (cp.checkActivation(this.player1, this.player2)) {
         this.currentCheckpoint = cp;
+        this.triggerScreenShake(6, 0.2);
         this.showNotification('CHECKPOINT REACHED!');
         if (this.mode === 'NETWORK' && this.net.isHost) {
           this.net.sendObjectUpdate(cp.id, { activated: true });
@@ -313,22 +358,22 @@ export class Game {
 
     if (this.mode === 'LOCAL' && this.localViewportMode === 'SPLIT') {
       const vWidth = W / 2;
-      this.camP1.x += (this.player1.x - vWidth / 2 - this.camP1.x) * 0.1;
-      this.camP1.y += (this.player1.y - H / 2 - this.camP1.y) * 0.1;
+      this.camP1.x += (this.player1.x - vWidth / 2 - this.camP1.x) * 0.12;
+      this.camP1.y += (this.player1.y - H / 2 - this.camP1.y) * 0.12;
 
-      this.camP2.x += (this.player2.x - vWidth / 2 - this.camP2.x) * 0.1;
-      this.camP2.y += (this.player2.y - H / 2 - this.camP2.y) * 0.1;
+      this.camP2.x += (this.player2.x - vWidth / 2 - this.camP2.x) * 0.12;
+      this.camP2.y += (this.player2.y - H / 2 - this.camP2.y) * 0.12;
     } else {
-      // Single Viewport tracking midpoint between both players
       const targetX = (this.player1.x + this.player2.x) / 2 - W / 2;
       const targetY = (this.player1.y + this.player2.y) / 2 - H / 2;
-      this.camP1.x += (targetX - this.camP1.x) * 0.1;
-      this.camP1.y += (targetY - this.camP1.y) * 0.1;
+      this.camP1.x += (targetX - this.camP1.x) * 0.12;
+      this.camP1.y += (targetY - this.camP1.y) * 0.12;
     }
   }
 
   onLevelComplete() {
     audioManager.playSfx('win');
+    this.triggerScreenShake(12, 0.4);
     this.state = 'VICTORY';
     this.updateUIVisibility();
 
@@ -355,7 +400,6 @@ export class Game {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     if (this.state !== 'PLAYING' && this.state !== 'VICTORY') {
-      // Render animated background in menu
       this.renderMenuBackground();
       return;
     }
@@ -364,7 +408,6 @@ export class Game {
     const H = this.canvas.height;
 
     if (this.mode === 'LOCAL' && this.localViewportMode === 'SPLIT') {
-      // DUAL VIEWPORT SPLIT SCREEN
       const halfW = W / 2;
 
       // --- LEFT VIEWPORT: PLAYER 1 (REALITY A) ---
@@ -385,14 +428,13 @@ export class Game {
 
       // Center Divider Line
       this.ctx.lineWidth = 4;
-      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
       this.ctx.beginPath();
       this.ctx.moveTo(halfW, 0);
       this.ctx.lineTo(halfW, H);
       this.ctx.stroke();
 
     } else {
-      // SINGLE VIEWPORT (Networked or Single Screen Local)
       const role = this.mode === 'NETWORK' ? this.net.playerRole : 'p1';
       this.renderViewport(0, 0, W, H, this.camP1, role);
     }
@@ -400,7 +442,16 @@ export class Game {
 
   renderViewport(vx, vy, vw, vh, camera, viewerRole) {
     this.ctx.save();
-    this.ctx.translate(vx, vy);
+    
+    // Apply Screen Shake Offset
+    let shakeX = 0;
+    let shakeY = 0;
+    if (this.shakeTime > 0) {
+      shakeX = (Math.random() - 0.5) * this.shakeIntensity;
+      shakeY = (Math.random() - 0.5) * this.shakeIntensity;
+    }
+
+    this.ctx.translate(vx + shakeX, vy + shakeY);
 
     // Render User Provided Parchment Texture Background
     if (!this.bgImg) {
@@ -423,7 +474,6 @@ export class Game {
       }
       this.ctx.fillRect(0, 0, vw, vh);
     } else {
-      // Fallback
       this.ctx.fillStyle = viewerRole === 'p1' ? '#091e2a' : '#2a0914';
       this.ctx.fillRect(0, 0, vw, vh);
     }
@@ -446,6 +496,14 @@ export class Game {
       this.ctx.moveTo(0, y);
       this.ctx.lineTo(vw, y);
       this.ctx.stroke();
+    }
+
+    // Render Ambient Floating Dust Motes
+    this.ctx.fillStyle = viewerRole === 'p1' ? 'rgba(0, 229, 255, 0.35)' : 'rgba(255, 51, 102, 0.35)';
+    for (const mote of this.ambientMotes) {
+      this.ctx.beginPath();
+      this.ctx.arc(mote.x % vw, mote.y % vh, mote.radius, 0, Math.PI * 2);
+      this.ctx.fill();
     }
 
     // Render Platforms
@@ -477,6 +535,13 @@ export class Game {
     // Render Players
     this.player1.draw(this.ctx, camera);
     this.player2.draw(this.ctx, camera);
+
+    // Canvas Post-Processing: Radial Lens Vignette Overlay
+    const vignette = this.ctx.createRadialGradient(vw / 2, vh / 2, vw * 0.35, vw / 2, vh / 2, vw * 0.7);
+    vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vignette.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
+    this.ctx.fillStyle = vignette;
+    this.ctx.fillRect(0, 0, vw, vh);
 
     this.ctx.restore();
   }
