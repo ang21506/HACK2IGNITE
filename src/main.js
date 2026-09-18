@@ -150,9 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnVictoryMenu')?.addEventListener('click', () => {
-    showPanel(mainMenu);
     game.state = 'MENU';
     game.updateUIVisibility();
+    showPanel(mainMenu);
   });
 
   // Disconnect Overlay — Return to Menu
