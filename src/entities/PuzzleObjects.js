@@ -12,7 +12,7 @@ export class Platform {
     this.label = label;
   }
 
-  draw(ctx, viewportOffset, viewerRole, colorblindMode = true) {
+  draw(ctx, viewportOffset, viewerRole, colorblindMode = false) {
     if (!RealityMatrix.isVisibleToPlayer(this.reality, viewerRole, colorblindMode)) return;
 
     const drawX = this.x - viewportOffset.x;
@@ -46,12 +46,22 @@ export class Platform {
       ctx.stroke();
     }
 
-    // Symbol Icon Badge
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px Outfit, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(style.symbol, drawX + this.w / 2, drawY + this.h / 2);
+    // Symbol / Label — enlarged in colorblind mode for shape-only recognition
+    if (colorblindMode) {
+      // Large bold label (A / B / ★) dominates the platform tile
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = `bold ${Math.min(this.h - 4, 20)}px Outfit, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(style.label, drawX + this.w / 2, drawY + this.h / 2);
+    } else {
+      // Default: small symbol icon badge
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(style.symbol, drawX + this.w / 2, drawY + this.h / 2);
+    }
 
     ctx.restore();
   }
@@ -156,12 +166,12 @@ export class Switch {
     }
   }
 
-  draw(ctx, viewportOffset, viewerRole) {
+  draw(ctx, viewportOffset, viewerRole, colorblindMode = false) {
     if (!RealityMatrix.isVisibleToPlayer(this.reality, viewerRole, true)) return;
 
     const drawX = this.x - viewportOffset.x;
     const drawY = this.y - viewportOffset.y;
-    const style = RealityMatrix.getStyle(this.reality);
+    const style = RealityMatrix.getStyle(this.reality, colorblindMode);
 
     // Switch Base
     ctx.fillStyle = '#334155';
@@ -174,6 +184,15 @@ export class Switch {
     ctx.beginPath();
     ctx.roundRect(drawX + 4, btnY, this.w - 8, btnHeight, 3);
     ctx.fill();
+
+    // Colorblind mode: show reality label on the button
+    if (colorblindMode) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px Outfit, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(style.label, drawX + this.w / 2, btnY + btnHeight / 2);
+    }
 
     // Timed indicator
     if (this.isTimed && this.active) {
@@ -223,12 +242,12 @@ export class Door {
     }
   }
 
-  draw(ctx, viewportOffset, viewerRole) {
+  draw(ctx, viewportOffset, viewerRole, colorblindMode = false) {
     if (!RealityMatrix.isVisibleToPlayer(this.reality, viewerRole, true)) return;
 
     const drawX = this.x - viewportOffset.x;
     const drawY = this.y - viewportOffset.y;
-    const style = RealityMatrix.getStyle(this.reality);
+    const style = RealityMatrix.getStyle(this.reality, colorblindMode);
 
     // Door Frame
     ctx.strokeStyle = '#475569';
@@ -252,6 +271,14 @@ export class Door {
         ctx.beginPath();
         ctx.arc(lockX, lockY - 3, 4, Math.PI, 0);
         ctx.stroke();
+        // Colorblind: add reality label below the lock icon
+        if (colorblindMode) {
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.font = 'bold 11px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(style.label, lockX, lockY + 14);
+        }
       }
     }
   }
@@ -271,12 +298,12 @@ export class PushableBox {
     this.isBox = true;
   }
 
-  draw(ctx, viewportOffset, viewerRole) {
+  draw(ctx, viewportOffset, viewerRole, colorblindMode = false) {
     if (!RealityMatrix.isVisibleToPlayer(this.reality, viewerRole, true)) return;
 
     const drawX = this.x - viewportOffset.x;
     const drawY = this.y - viewportOffset.y;
-    const style = RealityMatrix.getStyle(this.reality);
+    const style = RealityMatrix.getStyle(this.reality, colorblindMode);
 
     ctx.fillStyle = style.primaryColor;
     ctx.beginPath();
@@ -295,6 +322,15 @@ export class PushableBox {
     ctx.moveTo(drawX + this.w - 6, drawY + 6);
     ctx.lineTo(drawX + 6, drawY + this.h - 6);
     ctx.stroke();
+
+    // Colorblind mode: reality label on the box face
+    if (colorblindMode) {
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = `bold 14px Outfit, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(style.label, drawX + this.w / 2, drawY + this.h / 2);
+    }
   }
 }
 

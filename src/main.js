@@ -121,6 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
     e.target.textContent = game.localViewportMode === 'SPLIT' ? 'SPLIT SCREEN' : 'SINGLE SCREEN';
   });
 
+  document.getElementById('toggleColorblind')?.addEventListener('click', (e) => {
+    game.colorblindMode = !game.colorblindMode;
+    // Update button label to show current state
+    e.target.textContent = game.colorblindMode ? 'PATTERNS & ICONS ✓' : 'PATTERNS & ICONS';
+    e.target.style.background = game.colorblindMode ? '#0f172a' : '';
+    e.target.style.color = game.colorblindMode ? '#4ade80' : '';
+  });
+
   // Back Buttons
   document.getElementById('btnHostBack')?.addEventListener('click', () => showPanel(mainMenu));
   document.getElementById('btnJoinBack')?.addEventListener('click', () => showPanel(mainMenu));

@@ -12,7 +12,8 @@ export class Game {
 
     this.mode = 'LOCAL'; // 'LOCAL' or 'NETWORK'
     this.localViewportMode = 'SPLIT'; // 'SPLIT' or 'SINGLE'
-    this.state = 'MENU'; // 'MENU', 'LOBBY', 'PLAYING', 'VICTORY'
+    this.state = 'MENU'; // 'MENU', 'LOBBY', 'PLAYING', 'VICTORY', 'DISCONNECTED'
+    this.colorblindMode = false; // Extra non-color shape/pattern differentiators
 
     this.currentLevelIndex = 0;
     this.levelData = null;
@@ -450,20 +451,20 @@ export class Game {
 
     // Render Platforms
     for (const plat of this.platforms) {
-      plat.draw(this.ctx, camera, viewerRole);
+      plat.draw(this.ctx, camera, viewerRole, this.colorblindMode);
     }
 
     // Render Switches & Doors
     for (const sw of this.switches) {
-      sw.draw(this.ctx, camera, viewerRole);
+      sw.draw(this.ctx, camera, viewerRole, this.colorblindMode);
     }
     for (const door of this.doors) {
-      door.draw(this.ctx, camera, viewerRole);
+      door.draw(this.ctx, camera, viewerRole, this.colorblindMode);
     }
 
     // Render Boxes
     for (const box of this.boxes) {
-      box.draw(this.ctx, camera, viewerRole);
+      box.draw(this.ctx, camera, viewerRole, this.colorblindMode);
     }
 
     // Render Checkpoints & Exit Portal
