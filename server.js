@@ -105,6 +105,12 @@ wss.on('connection', (ws) => {
             return;
           }
 
+          // Prevent joining a game already in progress — would cause immediate desync
+          if (room.gameState === 'PLAYING') {
+            ws.send(JSON.stringify({ type: 'ERROR', message: 'Game already in progress. Please wait for the next session.' }));
+            return;
+          }
+
           if (room.client && room.client.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'ERROR', message: 'Room is full (2/2 players)!' }));
             return;
