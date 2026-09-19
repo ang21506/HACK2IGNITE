@@ -13,6 +13,7 @@ export class Game {
     this.localViewportMode = 'SPLIT'; // 'SPLIT' or 'SINGLE'
     this.state = 'MENU'; // 'MENU', 'LOBBY', 'PLAYING', 'VICTORY', 'DISCONNECTED'
     this.colorblindMode = false; // Extra non-color shape/pattern differentiators
+    this.introPlaying = false; // True while cinematic intro is active
 
     this.currentLevelIndex = 0;
     this.levelData = null;
@@ -432,6 +433,9 @@ export class Game {
 
   render() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Don't render while cinematic intro is taking over the canvas
+    if (this.introPlaying) return;
 
     if (this.state !== 'PLAYING' && this.state !== 'VICTORY') {
       this.renderMenuBackground();

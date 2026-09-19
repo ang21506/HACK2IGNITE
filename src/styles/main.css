@@ -114,7 +114,7 @@ html, body {
   justify-content: center;
 }
 
-/* UI Panels (Unity Frosted Glass Style) */
+/* UI Panels (Frosted Glass) */
 .ui-panel {
   position: absolute;
   pointer-events: auto;
@@ -133,14 +133,42 @@ html, body {
   gap: 24px;
   opacity: 0;
   visibility: hidden;
-  transform: scale(0.94) translateY(12px);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(0.92) translateY(20px);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0s linear 0.45s;
 }
 
 .ui-panel.active {
   opacity: 1;
   visibility: visible;
   transform: scale(1) translateY(0);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0s linear 0s;
+}
+
+/* Main menu gets a special cinematic entrance after intro */
+#mainMenu.active {
+  animation: menuEnter 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes menuEnter {
+  from { opacity: 0; transform: scale(0.90) translateY(30px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+/* Stagger children of main menu panel */
+#mainMenu.active > * {
+  animation: childFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+#mainMenu.active > *:nth-child(1) { animation-delay: 0.10s; }
+#mainMenu.active > *:nth-child(2) { animation-delay: 0.22s; }
+#mainMenu.active > *:nth-child(3) { animation-delay: 0.34s; }
+
+@keyframes childFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Main Menu Logo */
@@ -149,7 +177,7 @@ html, body {
 }
 
 .split-title {
-  font-size: 3.4rem;
+  font-size: clamp(2rem, 6vw, 3.4rem);
   font-weight: 900;
   letter-spacing: 3px;
   display: flex;
@@ -158,17 +186,30 @@ html, body {
   gap: 12px;
   line-height: 1;
   margin-bottom: 8px;
-  text-shadow: 0 6px 25px rgba(0,0,0,0.6);
+  white-space: nowrap;
+  overflow: visible;
 }
 
 .reality-a-text {
   color: var(--reality-a);
-  text-shadow: 0 0 25px var(--reality-a-glow);
+  text-shadow: 0 0 30px var(--reality-a-glow), 0 0 60px rgba(0,229,255,0.2);
+  animation: glowPulseA 3s ease-in-out infinite;
 }
 
 .reality-b-text {
   color: var(--reality-b);
-  text-shadow: 0 0 25px var(--reality-b-glow);
+  text-shadow: 0 0 30px var(--reality-b-glow), 0 0 60px rgba(255,51,102,0.2);
+  animation: glowPulseB 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes glowPulseA {
+  0%, 100% { text-shadow: 0 0 25px var(--reality-a-glow); }
+  50%       { text-shadow: 0 0 45px var(--reality-a-glow), 0 0 80px rgba(0,229,255,0.35); }
+}
+
+@keyframes glowPulseB {
+  0%, 100% { text-shadow: 0 0 25px var(--reality-b-glow); }
+  50%       { text-shadow: 0 0 45px var(--reality-b-glow), 0 0 80px rgba(255,51,102,0.35); }
 }
 
 .tagline {

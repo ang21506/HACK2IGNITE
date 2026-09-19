@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   game.run();
 
   // --- CINEMATIC INTRO ---
-  // Hide all UI panels during intro so only the canvas sequence shows
-  document.getElementById('uiOverlay').style.visibility = 'hidden';
+  // Pause game render loop so it doesn't draw over the intro
+  game.introPlaying = true;
   new CinematicIntro(canvas, game.ctx, () => {
-    // Restore UI and show main menu
-    document.getElementById('uiOverlay').style.visibility = 'visible';
+    // Intro done — hand control back to game render loop, show menu
+    game.introPlaying = false;
     document.getElementById('mainMenu')?.classList.add('active');
   });
 
